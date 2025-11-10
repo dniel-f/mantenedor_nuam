@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Carga Masiva de Montos (DJ1948){% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">Carga Masiva de Montos (DJ1948)</h4>
+            </div>
+            <div class="card-body">
+                
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">Formato del Archivo</h5>
+                    <p>El archivo CSV debe contener **exactamente** las siguientes cabeceras (separadas por comas):</p>
+                    <ul>
+                        <li>Ejercicio</li>
+                        <li>Mercado</li>
+                        <li>Instrumento</li>
+                        <li>Fecha (Formato: AAAA-MM-DD)</li>
+                        <li>Secuencia</li>
+                        <li>Numero de dividendo</li>
+                        <li>Tipo sociedad</li>
+                        <li>Valor Historico</li>
+                        <li>Monto_08</li>
+                        <li>Monto_09</li>
+                        <li>... (y así sucesivamente hasta 'Monto_37')</li>
+                    </ul>
+                    <p class="mb-0"><strong>Nota:</strong> El sistema calculará los factores basándose en estos montos.</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="archivo_csv" class="form-label">Seleccionar archivo CSV</label>
+                        <input class="form-control" type="file" id="archivo_csv" name="archivo_csv" accept=".csv" required>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'calificaciones:lista_calificaciones' %}" class="btn btn-outline-secondary me-2">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-upload"></i> Procesar Archivo
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

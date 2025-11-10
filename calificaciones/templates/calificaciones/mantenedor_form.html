@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load calificaciones_extras %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5); z-index: 1050;
+        display: none; justify-content: center; align-items: center;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="overlay" id="loading-overlay">
+    <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Calculando...</span>
+    </div>
+</div>
+
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">{{ titulo_pagina }}</h4>
+            </div>
+            <div class="card-body">
+                
+                <form method="post" novalidate id="calificacion-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <h5 class="mb-3">Datos Generales</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.mercado.id_for_label }}" class="form-label">{{ form.mercado.label }}</label>
+                                    {{ form.mercado }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.instrumento_nombre.id_for_label }}" class="form-label">{{ form.instrumento_nombre.label }}</label>
+                            {{ form.instrumento_nombre }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.fecha_pago.id_for_label }}" class="form-label">{{ form.fecha_pago.label }}</label>
+                            {{ form.fecha_pago }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.secuencia_evento.id_for_label }}" class="form-label">{{ form.secuencia_evento.label }}</label>
+                            {{ form.secuencia_evento }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.evento_capital.id_for_label }}" class="form-label">{{ form.evento_capital.label }}</label>
+                            {{ form.evento_capital }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.anio.id_for_label }}" class="form-label">{{ form.anio.label }}</label>
+                            {{ form.anio }}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="{{ form.valor_historico.id_for_label }}" class="form-label">{{ form.valor_historico.label }}</label>
+                            {{ form.valor_historico }}
+                        </div>
+                        <div class="col-md-4 d-flex justify-content-end  align-items-center pt-4">
+                            <div class="form-check form-switch">
+                                {{ form.ingreso_por_montos }}
+                                <label for="{{ form.ingreso_por_montos.id_for_label }}" class="form-check-label">{{ form.ingreso_por_montos.label }}</label>
+                            </div>
+                        </div>
+                         <div class="col-12">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
+                            {{ form.descripcion }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+
+                    <h5 class="mb-3" id="titulo-factores">Factores Tributarios (08-37)</h5>
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name|slice:":7" == "factor_" %}
+                            <div class="col-md-4">
+                                <label for="{{ field.id_for_label }}" class="form-label" id="label-{{ field.name }}">
+                                    {{ field.label }}
+                                </label>
+                                <div class="factor-field" data-field-name="{{ field.name }}">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        
+                        <div>
+                            {% if calificacion and request.session.rol_nombre == 'Administrador' %}
+                                <a href="{% url 'calificaciones:eliminar_calificacion' calificacion.id_calificacion %}" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Eliminar Calificación
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <a href="{% url 'calificaciones:lista_calificaciones' %}" class="btn btn-outline-secondary me-2">
+                                Cancelar
+                            </a>
+                            <button type="button" class="btn btn-info me-2" id="btn-calcular" style="display: none;">
+                                <i class="bi bi-calculator"></i> Calcular
+                            </button>
+                            <button type="submit" class="btn btn-success" id="btn-grabar">
+                                <i class="bi bi-check-lg"></i> Grabar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // --- 1. Referencias a Elementos ---
+    const checkboxMontos = document.getElementById("{{ form.ingreso_por_montos.id_for_label }}");
+    const tituloFactores = document.getElementById("titulo-factores");
+    const btnCalcular = document.getElementById("btn-calcular");
+    const btnGrabar = document.getElementById("btn-grabar");
+    const mainForm = document.getElementById("calificacion-form");
+    const loadingOverlay = document.getElementById("loading-overlay");
+    
+    // --- CAMBIO: Crear un objeto JS con los labels ORIGINALES ---
+    // Django "imprime" esto como un objeto JavaScript válido
+    const originalLabels = {
+        {% for field in form %}
+            {% if field.name|slice:":7" == "factor_" %}
+                "{{ field.name }}": "{{ field.label|escapejs }}",
+            {% endif %}
+        {% endfor %}
+    };
+    
+    // Lista de todos los campos de factores
+    const factorFields = Object.keys(originalLabels);
+
+    // --- 2. Función Principal de UI ---
+    function actualizarUI() {
+        if (!checkboxMontos) return;
+        
+        const esIngresoPorMontos = checkboxMontos.checked;
+
+        // Actualizar Título
+        tituloFactores.textContent = esIngresoPorMontos ? "Montos (DJ1948)" : "Factores Tributarios (08-37)";
+        
+        // Actualizar Botones
+        btnCalcular.style.display = esIngresoPorMontos ? "inline-block" : "none";
+        btnGrabar.style.display = esIngresoPorMontos ? "none" : "inline-block";
+        
+        // Actualizar Labels
+        factorFields.forEach(fieldName => {
+            const label = document.getElementById(`label-${fieldName}`);
+            if (label) {
+                // --- CAMBIO: Usar el objeto JS 'originalLabels' ---
+                // Esto es robusto y siempre usa el texto original del servidor
+                let textoOriginal = originalLabels[fieldName]; 
+                
+                if (esIngresoPorMontos) {
+                    label.textContent = textoOriginal.replace("Factor-", "Monto-");
+                } else {
+                    label.textContent = textoOriginal; // Siempre vuelve al original
+                }
+            }
+        });
+    }
+
+    // --- 3. Función de Cálculo (AJAX) ---
+    async function handleCalcularClick(event) {
+        event.preventDefault(); // Evita que el form se envíe
+        loadingOverlay.style.display = 'flex'; // Mostrar "Cargando..."
+
+        // 1. Recolectar todos los montos del formulario
+        const montosData = {};
+        factorFields.forEach(fieldName => {
+            const input = document.getElementById(`id_${fieldName}`);
+            montosData[fieldName] = input.value || '0.0';
+        });
+
+        // 2. Enviar datos al servidor (AJAX/Fetch)
+        try {
+            const response = await fetch("{% url 'calificaciones:calcular_factores' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                },
+                body: JSON.stringify(montosData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Error del servidor: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // 3. Rellenar el formulario con los factores calculados
+            if (data.factores) {
+                factorFields.forEach(fieldName => {
+                    const input = document.getElementById(`id_${fieldName}`);
+                    if (data.factores[fieldName] !== undefined) {
+                        input.value = data.factores[fieldName];
+                    }
+                });
+            }
+            
+            // 4. Cambiar el modo de UI a "Factores"
+            checkboxMontos.checked = false;
+            actualizarUI(); // Esto ocultará "Calcular" y mostrará "Grabar"
+
+        } catch (error) {
+            console.error("Error al calcular:", error);
+            alert(`Error al calcular factores: ${error.message}`);
+        } finally {
+            loadingOverlay.style.display = 'none'; // Ocultar "Cargando..."
+        }
+    }
+
+    // --- 4. Asignar Eventos ---
+    if (checkboxMontos && btnCalcular && btnGrabar && tituloFactores) {
+        // Al cargar la página
+        actualizarUI();
+        
+        // Al hacer clic en el switch
+        checkboxMontos.addEventListener("click", actualizarUI);
+        
+        // Al hacer clic en "Calcular"
+        btnCalcular.addEventListener("click", handleCalcularClick);
+    }
+});
+</script>
+{% endblock %}

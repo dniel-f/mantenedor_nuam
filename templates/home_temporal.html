@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Mantenedor{% endblock %}
+
+{% block content %}
+
+<div class="p-4 mb-4 bg-white rounded-3 shadow-sm">
+    <div class="container-fluid py-3">
+        <h1 class="display-6 fw-bold">¡Bienvenido, {{ request.session.nombre_usuario }}!</h1>
+        <p class="col-md-8 fs-5">
+            Rol: <strong>{{ request.session.rol_nombre }}</strong>.
+            Este es el panel de control principal del Mantenedor NUAM.
+        </p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Total Calificaciones</h6>
+                <h2 class="card-title">{{ total_calificaciones }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Ingresos Manuales (Corredor)</h6>
+                <h2 class="card-title">{{ manual_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Ingresos del Sistema (Archivo/API)</h6>
+                <h2 class="card-title">{{ sistema_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Calificaciones por Estado</h5>
+                <canvas id="chartEstados"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Top 5 Mercados</h5>
+                <canvas id="chartMercados"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ chart_estados_json|json_script:"chart-estados-data" }}
+{{ chart_mercados_json|json_script:"chart-mercados-data" }}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // --- Gráfico 1: Estado (Pie Chart) ---
+    try {
+        const dataEstados = JSON.parse(document.getElementById("chart-estados-data").textContent);
+        const ctxEstados = document.getElementById('chartEstados').getContext('2d');
+        
+        new Chart(ctxEstados, {
+            type: 'doughnut', // 'pie' o 'doughnut'
+            data: {
+                labels: dataEstados.labels,
+                datasets: [{
+                    label: '# de Calificaciones',
+                    data: dataEstados.data,
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.7)',  // Verde (Éxito)
+                        'rgba(220, 53, 69, 0.7)', // Rojo (Peligro)
+                        'rgba(108, 117, 125, 0.7)', // Gris
+                    ],
+                    borderColor: [
+                        'rgba(255, 255, 255, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Error al cargar gráfico de estados:", e);
+    }
+
+    // --- Gráfico 2: Mercados (Bar Chart) ---
+    try {
+        const dataMercados = JSON.parse(document.getElementById("chart-mercados-data").textContent);
+        const ctxMercados = document.getElementById('chartMercados').getContext('2d');
+        
+        new Chart(ctxMercados, {
+            type: 'bar',
+            data: {
+                labels: dataMercados.labels,
+                datasets: [{
+                    label: 'Total Calificaciones',
+                    data: dataMercados.data,
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)', // Azul Bootstrap
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // Ocultar leyenda para gráficos de barra simples
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Error al cargar gráfico de mercados:", e);
+    }
+
+});
+</script>
+{% endblock %}

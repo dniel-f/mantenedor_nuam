@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Monitor de Auditoría{% endblock %}
+
+{% block content %}
+<div classid="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Monitor de Auditoría (Logs)</h4>
+    </div>
+    
+    <div class="card-body">
+        <form method="get" action="">
+            <div class="row g-3">
+                <div class="col-md-3 mb-2">
+                    <label for="{{ form_filtros.accion.id_for_label }}" class="form-label">{{ form_filtros.accion.label }}</label>
+                    {{ form_filtros.accion }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form_filtros.id_usuario.id_for_label }}" class="form-label">{{ form_filtros.id_usuario.label }}</label>
+                    {{ form_filtros.id_usuario }}
+                </div>
+                <div class="col-md-2">
+                    <label for="{{ form_filtros.fecha_desde.id_for_label }}" class="form-label">{{ form_filtros.fecha_desde.label }}</label>
+                    {{ form_filtros.fecha_desde }}
+                </div>
+                <div class="col-md-2">
+                    <label for="{{ form_filtros.fecha_hasta.id_for_label }}" class="form-label">{{ form_filtros.fecha_hasta.label }}</label>
+                    {{ form_filtros.fecha_hasta }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end mb-2 justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <a href="{% url 'auditoria:lista_logs' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-eraser"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID Log</th>
+                        <th>Fecha y Hora</th>
+                        <th>Acción</th>
+                        <th>Usuario</th>
+                        <th>ID Calificación Afectada</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.id_log }}</td>
+                        <td>{{ log.fecha|date:"d-m-Y P" }}</td>
+                        <td>
+                            {% if log.accion == 'INSERT' %}
+                                <span class="badge bg-success">{{ log.accion }}</span>
+                            {% elif log.accion == 'UPDATE' %}
+                                <span class="badge bg-primary">{{ log.accion }}</span>
+                            {% elif log.accion == 'DELETE' %}
+                                <span class="badge bg-danger">{{ log.accion }}</span>
+                            {% elif log.accion == 'IMPORT' %}
+                                <span class="badge bg-info">{{ log.accion }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ log.accion }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.id_usuario.nombre|default:"N/A" }}</td>
+                            <td>
+                            {% if log.id_calificacion %}
+                                
+                                {% if log.accion != 'DELETE' and log.id_calificacion.activo %}
+                                    <a href="{% url 'calificaciones:modificar_calificacion' log.id_calificacion.id_calificacion %}">
+                                        {{ log.id_calificacion.id_calificacion }}
+                                    </a>
+                                {% else %}
+                                    {{ log.id_calificacion.id_calificacion }}
+                                {% endif %}
+
+                            {% else %}
+                                N/A
+                            {% endif %}
+                            </td>
+                        <td>{{ log.detalle }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No se encontraron registros de log con los filtros seleccionados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

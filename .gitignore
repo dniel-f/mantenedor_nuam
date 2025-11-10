@@ -1,0 +1,33 @@
+# Entorno virtual
+/venv/
+/mantenedor_nuam/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de caché de Django
+*.log
+*.pot
+*.swo
+*.swp
+*.db
+*.sqlite3
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE (VSCode, PyCharm)
+.vscode/
+.idea/
+
+# Archivos de entorno
+.env
+*.env
+
+# Archivos de configuración sensibles
+# (Si tienes un 'config.ini' o 'settings_local.py' con contraseñas)
+# config.ini
+# settings_local.py
