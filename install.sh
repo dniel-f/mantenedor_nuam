@@ -6,13 +6,13 @@ echo "--- Iniciando la instalación del Mantenedor NUAM ---"
 
 # Definir el nombre del entorno virtual
 VENV_NAME="venv"
-PYTHON_VERSION="python3.13"
+PYTHON_VERSION="python3.11"
 
-# 1. Comprobar si Python 3.13 está instalado
+# 1. Comprobar si Python 3.11 está instalado
 if ! command -v $PYTHON_VERSION &> /dev/null
 then
-    echo "ERROR: Python 3.13 ($PYTHON_VERSION) no se encuentra."
-    echo "Por favor, instala Python 3.13 y vuelve a intentarlo."
+    echo "ERROR: Python 3.11 ($PYTHON_VERSION) no se encuentra."
+    echo "Por favor, instala Python 3.11 y vuelve a intentarlo."
     exit 1
 fi
 
@@ -42,8 +42,9 @@ echo ""
 echo "--- ¡Instalación completada! ---"
 echo ""
 echo "Próximos pasos:"
-echo "1. Configura tu archivo .env (copia .env.example)."
-echo "2. Configura la base de datos (ver README.md)."
-echo "3. Activa el entorno en tu terminal ejecutando:"
+echo "1. Configura tu archivo .env (Sección 2.2 del README)."
+echo "2. Inicia el Cloud SQL Proxy (Sección 2.3 del README)."
+echo "3. Carga los datos (Sección 3 del README)."
+echo "4. Activa el entorno en tu terminal ejecutando:"
 echo "   source $VENV_NAME/bin/activate"
-echo "4. Ejecuta las migraciones (si es necesario) y corre el servidor."
+echo "5. Corre el servidor (Sección 4 del README)."
