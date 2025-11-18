@@ -1,15 +1,16 @@
 # Mantenedor NUAM (Calificaciones Tributarias)
 
-Este proyecto es un sistema web modular de mantenimiento y administración (Mantenedor) para calificaciones tributarias, desarrollado en Django 5.2.7 y conectado a una base de datos legada de Google Cloud SQL (MySQL).
+Este proyecto es un sistema web modular de mantenimiento y administración (Mantenedor) para calificaciones tributarias, desarrollado en Django y conectado a una base de datos de Google Cloud SQL (MySQL).
 
-El sistema incluye gestión de usuarios por roles (Corredor, Administrador, Auditor), un CRUD completo de calificaciones, y un sistema de carga masiva (Factores y Montos) con lógica de cálculo y validación.
+El sistema incluye gestión de usuarios por roles (Corredor, Administrador, Auditor), un CRUD completo de calificaciones, un sistema de carga masiva (Factores y Montos) con lógica de cálculo, una API REST segura (JWT) y un dashboard de reportería.
 
 ## Requisitos Previos
 
 * Linux (Probado en Ubuntu/Debian)
-* Python 3.11 (o superior)
-* Acceso a un servidor de base de datos MySQL (local o remoto).
+* Python 3.11
 * `git` para clonar el repositorio.
+* El ejecutable de **Cloud SQL Auth Proxy** (descargable [aquí](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#proxy-download-links)).
+* **Dos archivos secretos** provistos por el desarrollador (ver Sección 2.1).
 
 ---
 
@@ -19,7 +20,7 @@ El script `install.sh` automatizará la creación del entorno virtual y la insta
 
 ```bash
 # 1. Clona el repositorio
-git clone https://github.com/dniel-f/mantenedor_nuam
+git clone [https://github.com/dniel-f/mantenedor_nuam](https://github.com/dniel-f/mantenedor_nuam)
 cd mantenedor_nuam
 
 # 2. Da permisos de ejecución al script
@@ -27,135 +28,103 @@ chmod +x install.sh
 
 # 3. Ejecuta el script de instalación
 ./install.sh
+```
 
-# 4. Activa el entorno virtual en tu sesión actual
-# (Debes hacer esto CADA VEZ que abras una nueva terminal)
+## 2. Configuración del Entorno (Evaluador)
+Este proyecto se conecta a una base de datos en Google Cloud. La conexión requiere dos archivos secretos y la ejecución del proxy.
+
+## 2.1. Archivos Secretos
+Has recibido dos (2) archivos del desarrollador por un canal seguro:
+
+* .env: Un archivo de texto plano que contiene las credenciales (usuario, contraseña, puerto) de la base de datos.
+
+* df-mantenedor-nuam-8da4c31e56a1.json (o similar): Esta es la llave de la Cuenta de Servicio de Google Cloud.
+
+Acción: Mueve ambos archivos (.env y el archivo .json) a la carpeta raíz del proyecto (la misma carpeta donde está manage.py y install.sh).
+
+## 2.2. Conexión Segura (Cloud SQL Auth Proxy)
+Para conectar tu máquina local a la instancia de Google Cloud de forma segura, debes ejecutar el Cloud SQL Auth Proxy en una terminal separada.
+
+* Asegúrate de que el archivo .json (del paso 2.1) esté en la raíz del proyecto.
+
+* Asegúrate de que el ejecutable cloud-sql-proxy (de "Requisitos Previos") esté en la misma carpeta o en tu PATH.
+
+* Abre una NUEVA TERMINAL (déjala abierta mientras trabajas) y ejecuta:
+
+
+### Comando para iniciar el túnel seguro
+### (Basado en la configuración del .env y los logs del proyecto)
+```
+./cloud-sql-proxy -c <<ruta_a_proyecto>>/df-mantenedor-nuam-8da4c31e56a1.json -p 3307 df-mantenedor-nuam:us-central1:bbdd-mantenedor-nuam
+```
+* -c: Apunta al archivo de credenciales JSON que moviste.
+
+* -p 3307: Le dice al proxy que escuche en el puerto 3307 (como está definido en tu .env).
+
+* "df-...": Es el nombre de conexión de la instancia en la nube.
+
+Si tienes éxito, verás el mensaje: The proxy has started successfully and is ready for new connections!
+
+## 3. Poblar la Base de Datos (Seed)
+Este proyecto incluye un script (seed.sh) que carga datos de prueba (usuarios, calificaciones, logs) en la base de datos en la nube.
+
+Este paso es obligatorio para la evaluación.
+
+Abre una segunda terminal (deja el proxy corriendo en la primera).
+
+Activa el entorno virtual:
+
+```
 source venv/bin/activate
 ```
+Da permisos de ejecución al script de poblado:
 
----
-
-## 2. Configuración de la Base de Datos (Manual)
-
-Este proyecto está diseñado para conectarse a una base de datos MySQL existente y legada.
-
-### 2.1. Creación del Esquema
-
-Asegúrate de que la base de datos exista en tu servidor MySQL.
-
-```sql
-CREATE SCHEMA IF NOT EXISTS `mantenedor_calificaciones` DEFAULT CHARACTER SET utf8mb4;
-USE `mantenedor_calificaciones`;
 ```
-*(Si ya tienes el DDL completo, puedes ejecutarlo aquí)*.
-
-### 2.2. Configuración de Django (.env)
-
-El proyecto utiliza un archivo `.env` para manejar las contraseñas de forma segura (este archivo está en el `.gitignore` y nunca debe subirse a GitHub).
-
-**1. Crea un archivo `.env`** en la raíz del proyecto (junto a `manage.py`):
-```bash
-touch .env
+chmod +x seed.sh
 ```
+Ejecuta el script de poblado (esto puede tardar unos segundos):
 
-**2. Edita el archivo `.env`** y añade tus credenciales de base de datos:
-```ini
-# .env
-DEBUG=True
-SECRET_KEY=tu_secret_key_de_django_muy_larga_y_segura
-
-# Configuración de la Base de Datos
-DB_NAME=mantenedor_calificaciones
-DB_USER=tu_usuario_de_mysql
-DB_PASSWORD=tu_contraseña_de_mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
 ```
-
-**3. (Si es la primera vez) Configura `settings.py`** para leer este archivo:
-*Abre `mantenedor_nuam/settings.py` y añade esto al inicio:*
-```python
-import os
-from dotenv import load_dotenv
-load_dotenv() # Carga las variables del archivo .env
+(venv) $ ./seed.sh
 ```
-*Luego, busca la sección `DATABASES` y modifícala para usar estas variables:*
-```python
-# settings.py
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+Esto ejecutará python mantenedor_nuam/manage.py loaddata seed_data.json y cargará los datos de prueba.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-    }
-}
+Usuarios de Prueba (Seed)
+La base de datos ahora contiene usuarios listos para usar. Contraseña para todos: admin123
+
+* Rol Administrador: admin@mail.com
+
+* Rol Corredor: corredor_a@mail.com
+
+* Rol Corredor: corredor_b@mail.com
+
+* Rol Auditor: auditor@mail.com
+
+Ejecutar el Servidor
+¡Todo listo!
+
+Verifica que el Cloud SQL Proxy esté corriendo en la Terminal 1.
+
+En tu Terminal 2 (con el venv activado), ejecuta el servidor de Django:
+
 ```
-
----
-
-## 3. Creación del Superusuario (Criterio 8)
-
-Debido a que usamos una tabla `usuario` personalizada, el proceso de creación de superusuario requiere dos pasos manuales:
-
-### Paso 3.1: Insertar Roles y Estados Base
-
-Asegúrate de que la tabla `usuario` pueda encontrar sus `Roles` y `Estados`.
-
-```sql
-# Inserta los estados básicos (Ajusta los IDs si es necesario)
-INSERT INTO estado (id_estado, nombre, descripcion) VALUES (5, 'Activo', 'Usuario habilitado');
-INSERT INTO estado (id_estado, nombre, descripcion) VALUES (6, 'Invalido', 'Registro con errores');
-# (Añade otros estados si los tienes)
-
-# Inserta los roles básicos
-INSERT INTO rol (id_rol, nombre, descripcion) VALUES (4, 'Administrador', 'Rol con todos los permisos');
-INSERT INTO rol (id_rol, nombre, descripcion) VALUES (5, 'Corredor', 'Usuario de Corredora');
-INSERT INTO rol (id_rol, nombre, descripcion) VALUES (6, 'Auditor', 'Usuario supervisor de solo lectura');
+(venv) $ python mantenedor_nuam/manage.py runserver
 ```
+El sitio estará disponible en http://127.0.0.1:8000/.
 
-### Paso 3.2: Crear el Usuario
+# 5. (Opcional) Probar la API REST
+Puedes probar la API (Criterio 5) usando Postman o Insomnia.
 
-1.  **Crea el usuario en Django (para el panel /admin):**
-    ```bash
-    (venv) $ python manage.py createsuperuser
-    # Sigue las instrucciones (Email: admin@mail.com, Pass: ...)
-    ```
+Obtener Token (Login API):
 
-2.  **Crea el usuario en la App (para el Login/Auditoría):**
-    Ejecuta este SQL en tu base de datos, **asegurándote de que el `correo` coincida exactamente con el email que usaste en el paso 1**.
+1. POST a http://127.0.0.1:8000/api/token/
 
-    ```sql
-    # Asume que el ID de Rol 'Administrador' es 4 y el ID de Estado 'Activo' es 5
-    INSERT INTO usuario 
-    (nombre, correo, contrasena_hash, id_rol, id_estado, fecha_creacion) 
-    VALUES 
-    ('Admin Principal', 'admin@mail.com', 'hash_placeholder', 4, 5, NOW());
-    ```
+2. Body (JSON): {"username": "admin@mail.com", "password": "admin123"}
 
-3.  **Actualiza la Contraseña (¡Importante!):**
-    El `hash_placeholder` no funcionará. Debes generar un hash `bcrypt` real y actualizarlo.
-    * Ejecuta el script `crear_hash.py` (que hicimos anteriormente).
-    * Copia el hash que genera.
-    * Ejecuta el SQL:
-        ```sql
-        UPDATE usuario SET contrasena_hash = 'pega_el_hash_de_bcrypt_aqui' 
-        WHERE correo = 'admin@mail.com';
-        ```
+3. Copia el access_token de la respuesta.
 
----
+4. Probar Endpoint (Leer Calificaciones):
 
-## 4. Ejecutar el Servidor
+5. GET a http://127.0.0.1:8000/api/v1/calificaciones/
 
-¡Todo listo! Con el entorno activado (`source venv/bin/activate`), ejecuta el servidor:
-
-```bash
-(venv) $ python manage.py runserver
-```
-
-El sitio estará disponible en `http://127.0.0.1:8000/`.
+6. Autorización: Bearer Token (pega tu token de acceso).

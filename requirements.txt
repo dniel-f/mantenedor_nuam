@@ -5,7 +5,6 @@ django
 
 # Conector de Base de Datos
 mysqlclient
-pipmysql
 
 # Hashing de contraseñas
 bcrypt
@@ -16,3 +15,9 @@ python-dotenv
 # Para la API
 djangorestframework
 djangorestframework-simplejwt==5.3.1
+
+# Requerido por mysqlclient para la autenticación sha256/caching_sha2
+cryptography
+
+# Para documentación de API (Swagger)
+drf-spectacular

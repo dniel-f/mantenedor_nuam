@@ -937,43 +937,42 @@ def calificacion_carga_montos_view(request):
         # --- Lógica GET ---
         return render(request, 'calificaciones/carga_masiva_montos.html')
     
-# ==========================================================
-#  VISTA 9: Dashboard (Criterio 1)
+
+ # ==========================================================
+#  VISTA 9: Dashboard (Corregida - Error de Doble JSON)
 # ==========================================================
 @login_requerido_personalizado
 def dashboard_view(request):
     
     # --- 1. Estadísticas para Tarjetas (Cards) ---
-    total_calificaciones = Calificacion.objects.count()
-    
-    # Lógica de Origen (Manual vs. Sistema)
-    manual_count = Calificacion.objects.filter(id_usuario__isnull=False).count()
-    sistema_count = Calificacion.objects.filter(id_usuario__isnull=True).count()
+    total_calificaciones = Calificacion.objects_all.count()
+    manual_count = Calificacion.objects_all.filter(id_usuario__isnull=False).count()
+    sistema_count = Calificacion.objects_all.filter(id_usuario__isnull=True).count()
     
     # --- 2. Datos para Gráfico de Estado (Válido vs. Inválido) ---
-    # (Usamos el Manager 'objects_all' para contar también las borradas/inactivas)
-    qs_estados = Calificacion.objects_all.values(
-        'id_estado__nombre' # Agrupar por el nombre del estado
+    qs_estados_list = list(Calificacion.objects_all.values(
+        'id_estado__nombre'
     ).annotate(
-        count=Count('id_calificacion') # Contar cuántas hay en cada grupo
-    ).order_by('-count')
+        count=Count('id_calificacion')
+    ).order_by('-count'))
 
-    # Convertir a formato Chart.js
+    # Creamos el diccionario de Python
     chart_estados_data = {
-        "labels": [item['id_estado__nombre'] for item in qs_estados],
-        "data": [item['count'] for item in qs_estados],
+        "labels": [item['id_estado__nombre'] for item in qs_estados_list if item['id_estado__nombre']],
+        "data": [item['count'] for item in qs_estados_list if item['id_estado__nombre']],
     }
 
     # --- 3. Datos para Gráfico de Mercado (Top 5) ---
-    qs_mercados = Calificacion.objects.values(
+    qs_mercados_list = list(Calificacion.objects_all.values(
         'id_mercado__nombre'
     ).annotate(
         count=Count('id_calificacion')
-    ).order_by('-count')[:5] # Tomar los 5 principales
+    ).order_by('-count')[:5])
 
+    # Creamos el diccionario de Python
     chart_mercados_data = {
-        "labels": [item['id_mercado__nombre'] for item in qs_mercados],
-        "data": [item['count'] for item in qs_mercados],
+        "labels": [item['id_mercado__nombre'] for item in qs_mercados_list if item['id_mercado__nombre']],
+        "data": [item['count'] for item in qs_mercados_list if item['id_mercado__nombre']],
     }
 
     context = {
@@ -981,10 +980,11 @@ def dashboard_view(request):
         'manual_count': manual_count,
         'sistema_count': sistema_count,
         
-        # Pasamos los datos como JSON para que JavaScript los lea
-        'chart_estados_json': json.dumps(chart_estados_data),
-        'chart_mercados_json': json.dumps(chart_mercados_data),
+        # --- ¡CAMBIO CLAVE! ---
+        # Pasamos el diccionario de Python directamente.
+        # Ya NO usamos json.dumps() aquí.
+        'chart_estados_json': chart_estados_data,
+        'chart_mercados_json': chart_mercados_data,
     }
     
-    # Usaremos la misma plantilla 'home_temporal.html', pero con datos
     return render(request, 'home_temporal.html', context)
