@@ -42,7 +42,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-## 2. Configuración del Entorno (Evaluador)
+## 2. Configuración del Entorno
 Este proyecto se conecta a una base de datos en Google Cloud. La conexión requiere dos archivos secretos y la ejecución del proxy.
 
 ## 2.1. Archivos Secretos
@@ -79,8 +79,6 @@ Si tienes éxito, verás el mensaje: The proxy has started successfully and is r
 
 ## 3. Poblar la Base de Datos (Seed)
 Este proyecto incluye un script (seed.sh) que carga datos de prueba (usuarios, calificaciones, logs) en la base de datos en la nube.
-
-Este paso es obligatorio para la evaluación.
 
 Abre una segunda terminal (deja el proxy corriendo en la primera).
 
