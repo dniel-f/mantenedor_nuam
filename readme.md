@@ -113,7 +113,6 @@ La base de datos ahora contiene usuarios listos para usar. Contraseña para todo
 * Rol Auditor: auditor@mail.com
 
 Ejecutar el Servidor
-¡Todo listo!
 
 Verifica que el Cloud SQL Proxy esté corriendo en la Terminal 1.
 
