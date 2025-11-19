@@ -16,7 +16,19 @@ El sistema incluye gestión de usuarios por roles (Corredor, Administrador, Audi
 
 ## 1. Instalación (Script Automático)
 
-El script `install.sh` automatizará la creación del entorno virtual y la instalación de dependencias.
+### 1.1. Preparación del Sistema (Librerías OS)
+
+El conector de base de datos (`mysqlclient`) requiere librerías de desarrollo del sistema operativo para compilarse.
+Ejecuta el siguiente comando en tu terminal para instalarlas (requiere permisos de administrador/sudo):
+
+```bash
+sudo apt-get update
+sudo apt-get install python3-dev default-libmysqlclient-dev build-essential pkg-config
+```
+
+### 1.2. Ejecución del Script Automático
+Una vez instaladas las librerías del sistema, el script install.sh automatizará la creación del entorno virtual de Python y la instalación de dependencias.
+
 
 ```bash
 # 1. Clona el repositorio
