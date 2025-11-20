@@ -22,8 +22,6 @@ Para ingresar al sistema, siga estos pasos:
 
 Al cerrar sesión, será redirigido de vuelta a esta página.
 
-> 🎥 **Sugerencia de Video-Tutorial (VT-01):** "Cómo Iniciar y Cerrar Sesión."
-
 ---
 
 ## 3. Flujo de Trabajo: Corredor
@@ -53,11 +51,9 @@ Esta es la pantalla principal del mantenedor.
     * **Origen:** Muestra si el registro es "Manual" o "Archivo". Pase el mouse sobre la etiqueta para ver detalles (el usuario creador o el nombre del archivo CSV).
     * **Estado:** Muestra si el registro es "Válido" (verde) o "Inválido" (rojo), según las validaciones de la carga masiva.
     * **Acciones:**
-        * ✏️ (Lápiz): Le permite **Modificar** el registro.
-        * 🗑️ (Basurero): Le permite **Eliminar** el registro.
-        * 🔒 (Candado): Aparece en los registros de "Archivo" que usted no puede modificar ni eliminar.
-
-> 🎥 **Sugerencia de Video-Tutorial (VT-02):** "Recorriendo el Dashboard y la Grilla de Calificaciones."
+        * (Lápiz): Le permite **Modificar** el registro.
+        * (Basurero): Le permite **Eliminar** el registro.
+        * (Candado): Aparece en los registros de "Archivo" que usted no puede modificar ni eliminar.
 
 ### 3.3. Ingresar una Calificación (Manual)
 
@@ -90,11 +86,9 @@ Este flujo se usa si usted tiene los montos en pesos (DJ1948) y desea que el sis
     * Ocultará el botón "Calcular" y volverá a mostrar el botón "Grabar".
 6.  Revise los factores calculados y haga clic en **"Grabar"**.
 
-> 🎥 **Sugerencia de Video-Tutorial (VT-03):** "Cómo Ingresar una Calificación (Flujo de Montos vs. Factores)."
-
 ### 3.4. Modificar una Calificación
 
-1.  En la grilla, haga clic en el ícono de lápiz ✏️ del registro que desea modificar.
+1.  En la grilla, haga clic en el ícono de lápiz del registro que desea modificar.
 2.  Será llevado al formulario, que estará **pre-rellenado** con todos los datos de esa calificación (incluyendo los factores).
 3.  Realice los cambios que necesite. Puede incluso usar el flujo "Ingreso por Montos" y "Calcular" para recalcular todo.
 4.  Haga clic en **"Grabar"**.
@@ -105,7 +99,7 @@ Este flujo se usa si usted tiene los montos en pesos (DJ1948) y desea que el sis
 
 Solo puede eliminar registros que sean "Manuales" y de su propiedad.
 
-1.  En la grilla, haga clic en el ícono de basurero 🗑️.
+1.  En la grilla, haga clic en el ícono de basurero.
 2.  Será llevado a una pantalla de confirmación.
 3.  Haga clic en el botón rojo **"Sí, Eliminar"**.
 
@@ -132,8 +126,6 @@ El sistema permite cargar dos tipos de archivos CSV. Ambos botones se encuentran
 3.  Suba el archivo y haga clic en **"Procesar Archivo"**.
 4.  El sistema leerá los montos, **calculará los factores** por usted, y guardará los resultados.
 5.  Si una fila tiene un error de formato (ej. fecha incorrecta), será marcada como inválida en el log.
-
-> 🎥 **Sugerencia de Video-Tutorial (VT-04):** "Cómo usar las Cargas Masivas (Factores y Montos)."
 
 ---
 
@@ -175,14 +167,5 @@ Este es el mismo enlace que "Mis Calificaciones", pero con superpoderes:
 * **Modificación Global:** Cuando un Administrador modifica un registro de "Archivo" (de Bolsa), este **no** se convierte en "Manual". La modificación se considera una corrección global que todos los corredores verán.
 * **Eliminación en Formulario:** Al "Modificar" una calificación, el Administrador verá un botón "Eliminar Calificación" en la esquina inferior izquierda del formulario, permitiéndole borrar el registro sin volver a la grilla.
 
-> 🎥 **Sugerencia de Video-Tutorial (VT-05):** "Funciones del Administrador: Gestión de Usuarios, Auditoría y Reportes."
 
 ---
-
-## 5. (Marcador) Enlaces a Video-Tutoriales
-
-* [VT-01: Cómo Iniciar y Cerrar Sesión](...)
-* [VT-02: Recorriendo el Dashboard y la Grilla de Calificaciones](...)
-* [VT-03: Cómo Ingresar una Calificación (Manual vs. Montos)](...)
-* [VT-04: Cómo usar las Cargas Masivas (Factores y Montos)](...)
-* [VT-05: Funciones del Administrador (Gestión de Usuarios, Auditoría y Reportes)](...)
