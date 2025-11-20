@@ -1,4 +1,4 @@
-# 📖 Manual de Usuario - Mantenedor NUAM
+# Manual de Usuario - Mantenedor NUAM
 
 ## 1. Introducción
 
